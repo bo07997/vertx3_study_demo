@@ -48,7 +48,7 @@ public class MyFirstVerticle extends AbstractVerticle {
                     .end("<h1>Hello from my first Vert.x 3 application</h1>");
         });
 
-        router.route("/assets/*").handler(StaticHandler.create("assets"));
+        router.route("/assets/*").handler(StaticHandler.create("assets/login"));
 
         router.get("/api/whiskies").handler(this::getAll);
         router.route("/api/whiskies*").handler(BodyHandler.create());
@@ -65,7 +65,7 @@ public class MyFirstVerticle extends AbstractVerticle {
                 .listen(
                         // Retrieve the port from the configuration,
                         // default to 8080.
-                        config().getInteger("http.port", 8080),
+                        config().getInteger("http.port", 80),
                         result -> {
                             if (result.succeeded()) {
                                 fut.complete();
