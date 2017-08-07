@@ -3,6 +3,7 @@ package name.quanke.study.vertx.first;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -14,6 +15,10 @@ import io.vertx.ext.web.handler.StaticHandler;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import name.quanke.study.vertx.first.entity.User;
+import name.quanke.study.vertx.first.service.LoginService;
+import name.quanke.study.vertx.first.service.impl.LoginServiceimpl;
+
 /**
  * This is a verticle. A verticle is a _Vert.x component_. This verticle is implemented in Java, but you can
  * implement them in JavaScript, Groovy or even Ruby.
@@ -21,7 +26,7 @@ import java.util.Map;
 public class MyFirstVerticle extends AbstractVerticle {
 
     private Map<Integer, Whisky> products = new LinkedHashMap<>();
-
+    private LoginService LoginService=new  LoginServiceimpl();
     /**
      * This method is called when the verticle is deployed. It creates a HTTP server and registers a simple request
      * handler.
@@ -35,10 +40,11 @@ public class MyFirstVerticle extends AbstractVerticle {
     @Override
     public void start(Future<Void> fut) {
 
-        createSomeData();
+    	  Router router = Router.router(vertx);
 
-        // Create a router object.
-        Router router = Router.router(vertx);
+    	    // Enable multipart form data parsing
+    	   router.route().handler(BodyHandler.create());
+
 
         // Bind "/" to our hello message.
         router.route("/").handler(routingContext -> {
@@ -49,7 +55,8 @@ public class MyFirstVerticle extends AbstractVerticle {
         });
 
         router.route("/assets/*").handler(StaticHandler.create("assets/login"));
-
+        router.post("/user/login").handler(this::login);
+        
         router.get("/api/whiskies").handler(this::getAll);
         router.route("/api/whiskies*").handler(BodyHandler.create());
         router.post("/api/whiskies").handler(this::addOne);
@@ -62,18 +69,7 @@ public class MyFirstVerticle extends AbstractVerticle {
         vertx
                 .createHttpServer()
                 .requestHandler(router::accept)
-                .listen(
-                        // Retrieve the port from the configuration,
-                        // default to 8080.
-                        config().getInteger("http.port", 80),
-                        result -> {
-                            if (result.succeeded()) {
-                                fut.complete();
-                            } else {
-                                fut.fail(result.cause());
-                            }
-                        }
-                );
+                .listen(80);
     }
 
     private void addOne(RoutingContext routingContext) {
@@ -89,7 +85,16 @@ public class MyFirstVerticle extends AbstractVerticle {
                 .putHeader("content-type", "application/json; charset=utf-8")
                 .end(Json.encodePrettily(whisky));
     }
-
+    private void login(RoutingContext routingContext) {
+        // Read the request's content and create an instance of Whisky.
+    	 String username = routingContext.request().getParam("username");
+    	 String password = routingContext.request().getParam("password");
+    	 User user=null;
+    	 user.setPassword(password);
+    	 user.setUername(username);
+    	 LoginService.IsUser(user);
+      System.out.println("进来了！");
+    }
     private void getOne(RoutingContext routingContext) {
         final String id = routingContext.request().getParam("id");
         if (id == null) {
