@@ -6,7 +6,11 @@ import io.vertx.core.Future;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.jdbc.JDBCClient;
+import io.vertx.ext.mongo.MongoClient;
+import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -15,6 +19,7 @@ import io.vertx.ext.web.handler.StaticHandler;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import name.quanke.study.vertx.first.db.Logindbexample;
 import name.quanke.study.vertx.first.entity.User;
 import name.quanke.study.vertx.first.service.LoginService;
 import name.quanke.study.vertx.first.service.impl.LoginServiceimpl;
@@ -26,7 +31,6 @@ import name.quanke.study.vertx.first.service.impl.LoginServiceimpl;
 public class MyFirstVerticle extends AbstractVerticle {
 
     private Map<Integer, Whisky> products = new LinkedHashMap<>();
-    private LoginService LoginService=new  LoginServiceimpl();
     /**
      * This method is called when the verticle is deployed. It creates a HTTP server and registers a simple request
      * handler.
@@ -90,10 +94,18 @@ public class MyFirstVerticle extends AbstractVerticle {
     	 String username = routingContext.request().getParam("username");
     	 String password = routingContext.request().getParam("password");
     	 User user=null;
-    	 user.setPassword(password);
-    	 user.setUername(username);
-    	 LoginService.IsUser(user);
       System.out.println("进来了！");
+      //数据库
+      final	 MongoClient mongoClient = MongoClient.createShared(vertx, new JsonObject() 
+		.put("connection_string", "mongodb://localhost:27017")
+      .put("db_name", "test"));
+      
+      JsonObject product1 = new JsonObject().put("测试1", "12345").put("测试2", "Cooler").put("tets3", "100.0");
+    //建表，插入数据
+        mongoClient.save("test", product1, id -> {
+          System.out.println("Inserted id: " + id.result());
+   
+        });
     }
     private void getOne(RoutingContext routingContext) {
         final String id = routingContext.request().getParam("id");
